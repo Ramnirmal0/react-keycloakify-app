@@ -1,42 +1,45 @@
 import { useEffect } from "react";
-import { render } from "react-dom";
-import "./index.scss";
-import { App } from "./App";
+import ReactDOM from 'react-dom';
+import './index.scss';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
 import {
-  KcApp as KcAppBase,
+  KcApp,
   defaultKcProps,
-  getKcContext,
+  kcContext as realKcContext,
+  kcContextMocks,
   kcMessages,
   useKcLanguageTag
 } from "keycloakify";
-import { useCssAndCx } from "tss-react";
+import { css } from "tss-react";
 import tos_en_url from "./tos_en.md";
 import tos_fr_url from "./tos_fr.md";
-import "./kcMessagesExtension"
 
-const { kcContext } = getKcContext({
-  /* Uncomment to test th<e login page for development */
-  //"mockPageId": "login.ftl"
-});
+const kcContext = realKcContext ?? (
+  false /* Set to true to test the login pages outside of Keycloak */
+    ? kcContextMocks.kcLoginContext /* Change to .kcRegisterContext for example */
+    :
+    undefined
+);
 
 if (kcContext !== undefined) {
   console.log(kcContext);
 }
 
-render(
-    <KcApp />,
+ReactDOM.render(
+  kcContext === undefined ?
+    <App /> :
+    <Login />,
   document.getElementById("root")
 );
 
-function KcApp() {
+function Login() {
 
   if (kcContext === undefined) {
     throw new Error();
   }
 
   const { kcLanguageTag } = useKcLanguageTag();
-
-  const { css } = useCssAndCx();
 
   //Lazily download the therms and conditions in the appropriate language
   //if we are on the terms.ftl page.
@@ -63,12 +66,22 @@ function KcApp() {
   );
 
   return (
-      <KcAppBase
+    <>
+      <div id="foobar" style={{ "width": "200px", "height": "200px" }}></div>
+      <h1 style={{ "fontFamily": '"Work Sans"' }}>Test that the font apply</h1>
+      <KcApp
         kcContext={kcContext}
         {...{
           ...defaultKcProps,
           "kcHeaderWrapperClass": css({ "color": "red", "fontFamily": '"Work Sans"' })
         }}
       />
+    </>
+
   );
 }
+
+// If you want to start measuring performance in your app, pass a function
+// to log results (for example: reportWebVitals(console.log))
+// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+reportWebVitals();
